@@ -1,9 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
-import { Auth, getAuth, initializeAuth } from 'firebase/auth';
-// import { getReactNativePersistence } from 'firebase/auth/react-native';
+import { Auth, getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from "firebase/firestore";
-
 // Placeholder configuration - User needs to replace this
 const firebaseConfig = {
 apiKey: "AIzaSyD88q06sIkf0IfCKlCA4mL9THct3Xjp4oo",
@@ -19,7 +17,6 @@ apiKey: "AIzaSyD88q06sIkf0IfCKlCA4mL9THct3Xjp4oo",
 let app: FirebaseApp;
 let auth: Auth;
 let firestore: ReturnType<typeof getFirestore>;
-
 try {
   if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
