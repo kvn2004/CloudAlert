@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { getCurrentWeather } from "../../src/services/weather.service";
+import { LOCATION_SEARCH_URL, WEATHER_API_KEY } from "@/src/constants/api";
 
 // small helper to format ISO time -> HH:MM
 const formatHour = (iso: string) => {
@@ -33,6 +34,8 @@ export default function HomeWeather() {
   const [visibility, setVisibility] = useState<number | null>(null);
   const [cloudCover, setCloudCover] = useState<number | null>(null);
   const [locationName, setLocationName] = useState<string | null>(null);
+  const [results, setResults] = useState<any[]>([]);
+
   const [hourly, setHourly] = useState<Array<{ time: string; temp: number }>>(
     [],
   );
@@ -49,6 +52,43 @@ export default function HomeWeather() {
     const loc = await Location.getCurrentPositionAsync({});
     setLocation(loc);
     return loc.coords;
+  };
+  const searchCity = async (cityName: string) => {
+    try {
+      if (cityName.length < 3) {
+        setResults([]);
+        return;
+      }
+
+      const res = await fetch(
+        `${LOCATION_SEARCH_URL}?q=${cityName}&limit=5&appid=${WEATHER_API_KEY}`,
+      );
+
+      const data = await res.json();
+      setResults(data);
+    } catch (error) {
+      console.log("Search error", error);
+    }
+  };
+  const selectCity = async (lat: number, lon: number, name: string) => {
+    try {
+      setLoading(true);
+      setResults([]);
+      setSearch(name);
+
+      const data = await getCurrentWeather(lat, lon);
+
+      setCurrentTemp(data.main?.temp ?? null);
+      setHumidity(data.main?.humidity ?? null);
+      setWindSpeed(data.wind?.speed ?? null);
+      setVisibility(data.visibility ?? null);
+      setCloudCover(data.clouds?.all ?? null);
+      setLocationName(name);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadWeather = async () => {
@@ -84,6 +124,17 @@ export default function HomeWeather() {
   useEffect(() => {
     loadWeather();
   }, []);
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (search.length > 2) {
+        searchCity(search);
+      } else {
+        setResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delay);
+  }, [search]);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -107,6 +158,23 @@ export default function HomeWeather() {
             value={search}
             onChangeText={setSearch}
           />
+          {results.length > 0 && (
+            <View className="mt-2 bg-white shadow-md rounded-2xl max-h-60">
+              <ScrollView>
+                {results.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    className="px-4 py-3 border-b border-gray-100"
+                    onPress={() => selectCity(item.lat, item.lon, item.name)}
+                  >
+                    <Text className="font-medium text-black">
+                      {item.name}, {item.country}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
         </View>
       </View>
 
@@ -177,7 +245,7 @@ export default function HomeWeather() {
           />
           <DetailCard
             label="Visibility"
-            value={visibility !== null ? `${visibility} km` : "--"}
+            value={visibility !== null ? `${visibility / 1000} km` : "--"}
             icon="eye-outline"
           />
         </View>
