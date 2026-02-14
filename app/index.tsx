@@ -2,34 +2,36 @@ import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { useAuth } from "../src/context/AuthContext";
-import SplashScreen from "../src/screens/SplashScreen";
+import * as SplashScreenExpo from "expo-splash-screen";
+
+SplashScreenExpo.preventAutoHideAsync();
 
 const App: React.FC = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      if (user) {
-        // Use replace to avoid going back to splash
-        router.replace("/dashboard");
-      } else {
-        router.replace("/(auth)/login");
+    const prepareApp = async () => {
+      if (!loading) {
+        // Show splash for 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        console.log("User:", user);
+
+        if (user) {
+          router.replace("/dashboard");
+        } else {
+          router.replace("/(auth)/login");
+        }
+
+        // Hide splash
+        await SplashScreenExpo.hideAsync();
       }
-    }
+    };
+
+    prepareApp();
   }, [user, loading]);
 
-  // While loading or deciding, show Splash
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <SplashScreen />
-    </SafeAreaView>
-  );
+  return null; // Important: don't render custom splash
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1a1a1a" },
-});
 
 export default App;
