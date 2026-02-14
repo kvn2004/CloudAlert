@@ -29,14 +29,14 @@ export default function HomeWeather() {
   );
   const [currentTemp, setCurrentTemp] = useState<number | null>(null);
   const [humidity, setHumidity] = useState<number | null>(null);
-  const[windSpeed, setWindSpeed] = useState<number | null>(null);
-  const[visibility, setVisibility] = useState<number | null>(null);
-  const[cloudCover, setCloudCover] = useState<number | null>(null);
-  const[locationName, setLocationName] = useState<string | null>(null);
+  const [windSpeed, setWindSpeed] = useState<number | null>(null);
+  const [visibility, setVisibility] = useState<number | null>(null);
+  const [cloudCover, setCloudCover] = useState<number | null>(null);
+  const [locationName, setLocationName] = useState<string | null>(null);
   const [hourly, setHourly] = useState<Array<{ time: string; temp: number }>>(
     [],
   );
-  
+
   const [loading, setLoading] = useState(false);
   const getCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -56,20 +56,24 @@ export default function HomeWeather() {
       setLoading(true);
       const coords = await getCurrentLocation();
       if (!coords) return;
-      
-      const data = await getCurrentWeather(
-        coords.latitude,
-        coords.longitude,
-      );
-      
+
+      const data = await getCurrentWeather(coords.latitude, coords.longitude);
+
       setCurrentTemp(data.main?.temp ?? null);
       setHumidity(data.main?.humidity ?? null);
       setWindSpeed(data.wind?.speed ?? null);
       setVisibility(data.visibility ?? null);
+      const address = await Location.reverseGeocodeAsync({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
+
+      console.log(address);
+
       setCloudCover(data.clouds?.all ?? null);
-      setLocationName(data.name ?? null);
+      setLocationName(address[0]?.city ?? null);
       // Mock hourly or implement forecast later
-      setHourly([]); 
+      setHourly([]);
     } catch (err: any) {
       console.warn("Weather load error", err);
     } finally {
@@ -110,9 +114,7 @@ export default function HomeWeather() {
         {/* 2. Main Weather Hero */}
         <View className="items-center py-10 border-b border-gray-100">
           <Text className="text-gray-500 text-lg uppercase tracking-[4px] mb-2">
-            {location
-              ? locationName || "Current Location"
-              : "Your Location"}
+            {location ? locationName || "Current Location" : "Your Location"}
           </Text>
           <Text className="font-black text-black text-8xl">
             {currentTemp !== null ? `${Math.round(currentTemp)}°` : "--"}
@@ -158,14 +160,26 @@ export default function HomeWeather() {
 
         {/* 4. Weather Details Grid */}
         <View className="flex-row flex-wrap justify-between pb-10">
-          <DetailCard label="Humidity" value={humidity !== null ? `${humidity}%` : "--"} icon="water-outline" />
+          <DetailCard
+            label="Humidity"
+            value={humidity !== null ? `${humidity}%` : "--"}
+            icon="water-outline"
+          />
           <DetailCard
             label="Wind"
             value={windSpeed !== null ? `${windSpeed} m/s` : "--"}
             icon="thunderstorm-outline"
           />
-          <DetailCard label="Overcast Clouds" value={cloudCover !== null ? `${cloudCover}%` : "--"} icon="cloud-outline" />
-          <DetailCard label="Visibility" value={visibility !== null ? `${visibility} km` : "--"} icon="eye-outline" />
+          <DetailCard
+            label="Overcast Clouds"
+            value={cloudCover !== null ? `${cloudCover}%` : "--"}
+            icon="cloud-outline"
+          />
+          <DetailCard
+            label="Visibility"
+            value={visibility !== null ? `${visibility} km` : "--"}
+            icon="eye-outline"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
