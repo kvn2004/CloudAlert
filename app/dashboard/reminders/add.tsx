@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -9,48 +9,101 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { createReminder } from "../../../src/services/firestore.service";
+import {
+  createReminder,
+  getReminderById,
+  updateReminder,
+} from "../../../src/services/firestore.service";
+
+interface Reminder {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  time?: any;
+}
 
 export default function AddReminderScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
+  const isEditMode = !!id;
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [time, setTime] = useState("");
   const [selectedType, setSelectedType] = useState<string>("Weather");
-  const handleCreateReminder = async () => {
+  useEffect(() => {
+    if (isEditMode) {
+      loadReminder();
+    }
+  }, [id]);
+  const loadReminder = async () => {
+    try {
+      const reminder = (await getReminderById(id as string)) as Reminder;
+      if (!reminder) return;
+
+      setTitle(reminder.title);
+      setDescription(reminder.description);
+      setSelectedType(reminder.type);
+
+      if (reminder.time?.toDate) {
+        const date = reminder.time.toDate();
+        const formatted = date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        setTime(formatted);
+      }
+    } catch (error) {
+      console.error("Failed to load reminder", error);
+    }
+  };
+  const handleSubmit = async () => {
     if (!title || !time) {
       alert("Please enter title and time");
       return;
     }
 
     try {
-      // Convert time string to Date object (you can improve parsing later)
       const reminderTime = new Date();
-      const [hours, minutesPart] = time.split(":");
+      const [hoursStr, minutesStrRaw] = time.split(":");
+
+      let hours = parseInt(hoursStr);
       let minutes = 0;
-      let hoursInt = parseInt(hours);
-      if (minutesPart?.toLowerCase().includes("pm")) {
-        hoursInt += 12;
-        minutes = parseInt(minutesPart);
-      } else if (minutesPart?.toLowerCase().includes("am")) {
-        minutes = parseInt(minutesPart);
+
+      if (minutesStrRaw) {
+        const minutesStr = minutesStrRaw.replace(/am|pm/i, "").trim();
+        minutes = parseInt(minutesStr);
+
+        if (minutesStrRaw.toLowerCase().includes("pm") && hours < 12) {
+          hours += 12;
+        }
+
+        if (minutesStrRaw.toLowerCase().includes("am") && hours === 12) {
+          hours = 0;
+        }
       }
 
-      reminderTime.setHours(hoursInt, minutes, 0, 0);
+      reminderTime.setHours(hours, minutes, 0, 0);
 
-      // Create in Firestore
-      await createReminder({
+      const payload = {
         title,
         description,
         time: reminderTime,
-        type: selectedType, // store the type
-      });
+        type: selectedType,
+      };
 
-      alert("Reminder created!");
-      router.back(); // Go back to previous screen
+      if (isEditMode) {
+        await updateReminder(id as string, payload);
+        alert("Reminder updated!");
+      } else {
+        await createReminder(payload);
+        alert("Reminder created!");
+      }
+
+      router.back();
     } catch (error) {
       console.error(error);
-      alert("Failed to create reminder");
+      alert("Something went wrong");
     }
   };
 
@@ -65,7 +118,9 @@ export default function AddReminderScreen() {
           >
             <Ionicons name="arrow-back" size={20} color="black" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold">New Reminder</Text>
+          <Text className="text-xl font-bold">
+            {isEditMode ? "Edit Reminder" : "New Reminder"}
+          </Text>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} className="mt-4">
@@ -156,10 +211,10 @@ export default function AddReminderScreen() {
         <View className="pb-6">
           <TouchableOpacity
             className="items-center w-full py-4 mb-3 bg-black shadow-blg rounded-3xl"
-            onPress={handleCreateReminder}
+            onPress={handleSubmit}
           >
-            <Text className="text-lg font-bold text-white ">
-              Create Reminder
+            <Text className="text-lg font-bold text-white">
+              {isEditMode ? "Update Reminder" : "Create Reminder"}
             </Text>
           </TouchableOpacity>
         </View>

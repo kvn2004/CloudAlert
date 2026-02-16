@@ -1,46 +1,112 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Swipeable } from "react-native-gesture-handler";
 import {
-    FlatList,
-    SafeAreaView,
-    Text,
-    TouchableOpacity,
-    View,
+  subscribeToReminders,
+  deleteReminder,
+  updateReminder,
+} from "../../../src/services/firestore.service";
+import {
+  FlatList,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-
-// Mock Data
-const REMINDERS = [
-  { id: '1', title: 'Bring Umbrella', time: '08:00 AM', active: true, type: 'Weather' },
-  { id: '2', title: 'Car Wash', time: '10:30 AM', active: false, type: 'Task' },
-  { id: '3', title: 'Evening Jog', time: '06:00 PM', active: true, type: 'Health' },
-  { id: '4', title: 'Check Heater', time: '09:00 PM', active: true, type: 'Home' },
-];
 
 export default function RemindersScreen() {
   const router = useRouter();
 
+  const [reminders, setReminders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToReminders((data) => {
+      setReminders(data);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteReminder(id);
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
+  const renderLeftActions = (id: string) => (
+    <TouchableOpacity
+      onPress={() => router.push(`/dashboard/reminders/add?id=${id}`)}
+      className="items-center justify-center w-20 mb-3 bg-blue-500 rounded-2xl"
+    >
+      <Ionicons name="pencil-outline" size={24} color="white" />
+      <Text className="mt-1 text-xs text-white">Edit</Text>
+    </TouchableOpacity>
+  );
+
+  const renderRightActions = (id: string) => (
+    <TouchableOpacity
+      onPress={() => handleDelete(id)}
+      className="items-center justify-center w-20 mb-3 bg-red-500 rounded-2xl"
+    >
+      <Ionicons name="trash-outline" size={24} color="white" />
+      <Text className="mt-1 text-xs text-white">Delete</Text>
+    </TouchableOpacity>
+  );
   const renderItem = ({ item }: { item: any }) => (
-    <View className="flex-row items-center justify-between p-4 mb-3 bg-gray-50 rounded-2xl border border-gray-100">
-      <View className="flex-row items-center flex-1">
-        <View className={`w-12 h-12 items-center justify-center rounded-xl mr-4 ${item.active ? 'bg-black' : 'bg-gray-200'}`}>
-          <Ionicons 
-            name={item.type === 'Weather' ? 'rainy-outline' : 'notifications-outline'} 
-            size={24} 
-            color={item.active ? 'white' : 'gray'} 
-          />
+    <Swipeable
+      renderLeftActions={() => renderLeftActions(item.id)}
+      renderRightActions={() => renderRightActions(item.id)}
+    >
+      <View className="flex-row items-center justify-between p-4 mb-3 border border-gray-100 bg-gray-50 rounded-2xl">
+        <View className="flex-row items-center flex-1">
+          <View
+            className={`w-12 h-12 items-center justify-center rounded-xl mr-4 ${
+              item.active ? "bg-black" : "bg-gray-200"
+            }`}
+          >
+            <Ionicons
+              name={
+                item.type === "Weather"
+                  ? "rainy-outline"
+                  : "notifications-outline"
+              }
+              size={24}
+              color={item.active ? "white" : "gray"}
+            />
+          </View>
+
+          <View className="flex-1">
+            <Text
+              className={`text-base font-semibold ${
+                item.active ? "text-black" : "text-gray-400 line-through"
+              }`}
+            >
+              {item.title}
+            </Text>
+
+            <Text className="mt-1 text-xs text-gray-500">
+              {item.time?.toDate
+                ? item.time.toDate().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : new Date(item.time).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+              • {item.type}
+            </Text>
+          </View>
         </View>
-        <View className="flex-1">
-          <Text className={`text-base font-semibold ${item.active ? 'text-black' : 'text-gray-400 line-through'}`}>
-            {item.title}
-          </Text>
-          <Text className="text-xs text-gray-500 mt-1">{item.time} • {item.type}</Text>
-        </View>
-      </View>
-      <TouchableOpacity>
+
         <Ionicons name="ellipsis-vertical" size={20} color="#9ca3af" />
-      </TouchableOpacity>
-    </View>
+      </View>
+    </Swipeable>
   );
 
   return (
@@ -51,6 +117,7 @@ export default function RemindersScreen() {
           <Text className="text-3xl font-light tracking-tighter">
             My <Text className="font-bold">Reminders</Text>
           </Text>
+
           <TouchableOpacity className="items-center justify-center w-10 h-10 bg-gray-100 rounded-full">
             <Ionicons name="filter-outline" size={20} color="black" />
           </TouchableOpacity>
@@ -58,18 +125,25 @@ export default function RemindersScreen() {
 
         {/* List */}
         <FlatList
-          data={REMINDERS}
+          data={reminders}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
+          ListEmptyComponent={
+            !loading ? (
+              <Text className="mt-10 text-center text-gray-400">
+                No reminders found
+              </Text>
+            ) : null
+          }
         />
       </View>
 
       {/* FAB - Add Button */}
-      <TouchableOpacity 
-        className="absolute bottom-6 right-6 w-14 h-14 bg-black rounded-full items-center justify-center shadow-lg"
-        onPress={() => router.push('/dashboard/reminders/add')}
+      <TouchableOpacity
+        className="absolute items-center justify-center bg-black rounded-full shadow-lg bottom-6 right-6 w-14 h-14"
+        onPress={() => router.push("/dashboard/reminders/add")}
       >
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
