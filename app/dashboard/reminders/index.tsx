@@ -83,7 +83,7 @@ export default function RemindersScreen() {
           <View className="flex-1">
             <Text
               className={`text-base font-semibold ${
-                item.active ? "text-black" : "text-gray-400 line-through"
+                item.active ? "text-black" : "text-black-400"
               }`}
             >
               {item.title}
@@ -103,8 +103,6 @@ export default function RemindersScreen() {
             </Text>
           </View>
         </View>
-
-        <Ionicons name="ellipsis-vertical" size={20} color="#9ca3af" />
       </View>
     </Swipeable>
   );
@@ -118,9 +116,9 @@ export default function RemindersScreen() {
             My <Text className="font-bold">Reminders</Text>
           </Text>
 
-          <TouchableOpacity className="items-center justify-center w-10 h-10 bg-gray-100 rounded-full">
+          {/* <TouchableOpacity className="items-center justify-center w-10 h-10 bg-gray-100 rounded-full">
             <Ionicons name="filter-outline" size={20} color="black" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* List */}

@@ -34,7 +34,7 @@ export default function DashboardLayout() {
         }}
       />
       <Tabs.Screen
-        name="reminders"
+        name="reminders/index"
         options={{
           tabBarIcon: ({ color, size, focused }) => (
             <View className={`items-center justify-center w-10 h-10 ${focused ? 'bg-gray-100 rounded-xl' : ''}`}>

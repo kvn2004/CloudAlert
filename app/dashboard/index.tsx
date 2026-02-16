@@ -12,6 +12,7 @@ import {
 
 import { getCurrentWeather } from "../../src/services/weather.service";
 import { LOCATION_SEARCH_URL, WEATHER_API_KEY } from "@/src/constants/api";
+import { push } from "expo-router/build/global-state/routing";
 
 // small helper to format ISO time -> HH:MM
 const formatHour = (iso: string) => {
@@ -144,7 +145,7 @@ export default function HomeWeather() {
           <Text className="text-2xl font-light tracking-tighter">
             Cloud<Text className="font-bold">ALERT</Text>
           </Text>
-          <TouchableOpacity className="items-center justify-center w-10 h-10 bg-black rounded-full">
+          <TouchableOpacity className="items-center justify-center w-10 h-10 bg-black rounded-full" onPress={() => push("/dashboard/profile")}>
             <Ionicons name="person-outline" size={20} color="white" />
           </TouchableOpacity>
         </View>

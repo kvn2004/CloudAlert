@@ -1,43 +1,34 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../src/context/AuthContext";
-import SplashScreen from "../src/screens/SplashScreen";
-import * as SplashScreenExpo from "expo-splash-screen";
+import { View, ActivityIndicator } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
 
-SplashScreenExpo.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync();
 
-const App: React.FC = () => {
+export default function Index() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    const prepareApp = async () => {
-      if (!loading) {
-        // Keep splash visible for 3 seconds
-        await new Promise(resolve => setTimeout(resolve, 3000));
+    if (loading) return;
 
-       
-
-        if (user) {
-          router.replace("/dashboard");
-        } else {
-          router.replace("/(auth)/login");
-        }
-
-        await SplashScreenExpo.hideAsync();
-        setAppReady(true); // ✅ important
+    const redirect = async () => {
+      if (user) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/(auth)/login");
       }
+
+      await SplashScreen.hideAsync();
     };
 
-    prepareApp();
-  }, [user, loading]);
+    redirect();
+  }, [user, loading, router]);
 
-  if (!appReady) {
-    return <SplashScreen />;
-  }
-
-  return null;
-};
-
-export default App;
+  return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ActivityIndicator size="large" />
+    </View>
+  );
+}

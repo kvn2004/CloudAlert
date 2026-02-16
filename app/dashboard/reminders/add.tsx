@@ -100,7 +100,7 @@ export default function AddReminderScreen() {
         alert("Reminder created!");
       }
 
-      router.back();
+      router.push("/dashboard/reminders");
     } catch (error) {
       console.error(error);
       alert("Something went wrong");
