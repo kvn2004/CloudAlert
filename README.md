@@ -82,7 +82,7 @@ const firebaseConfig = {
   projectId: "YOUR_PROJECT_ID",
   storageBucket: "YOUR_STORAGE_BUCKET",
   messagingSenderId: "YOUR_MESSAGING_ID",
-  appId: "YOUR_APP_ID"
+  appId: "YOUR_APP_ID",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -141,18 +141,17 @@ Make sure your production profile includes:
 eas build -p android --profile production
 ```
 
-After the build finishes, download the APK from the generated link.
----
+## After the build finishes, download the APK from the generated link.
+
 ## 📲 Download APK
 
 [![Download APK](https://img.shields.io/badge/Download-Cloud_ALERT_APK-black?style=for-the-badge&logo=android)](https://expo.dev/artifacts/eas/s9TpXL6oU978vmoYpxN3Vq.apk)
-
 
 ## 🔐 Permissions Used
 
 This application may request the following permissions:
 
-- 📍 Location (for camera feature)
+- 📍 Location
 - 🌐 Internet (for Firebase connectivity)
 
 All permissions are requested at runtime and follow Android security best practices.
@@ -201,13 +200,14 @@ This project is developed for educational purposes only.
 
 ## ⭐ Future Improvements
 
-
 - Dark mode support
 - User authentication system
 - Offline support
 
 ---
+
 ## 📸 Screenshots
+
 ![Signin](assets/screenshots/9.jpeg)
 ![loging](assets/screenshots/10.jpeg)
 ![Permission](assets/screenshots/1.jpeg)
@@ -218,8 +218,3 @@ This project is developed for educational purposes only.
 ![](assets/screenshots/6.jpeg)
 ![](assets/screenshots/7.jpeg)
 ![](assets/screenshots/8.jpeg)
-
-
-
-
-
