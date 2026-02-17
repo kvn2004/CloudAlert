@@ -142,8 +142,11 @@ eas build -p android --profile production
 ```
 
 After the build finishes, download the APK from the generated link.
-![APK](https://expo.dev/artifacts/eas/s9TpXL6oU978vmoYpxN3Vq.apk)
 ---
+## 📲 Download APK
+
+[![Download APK](https://img.shields.io/badge/Download-Cloud_ALERT_APK-black?style=for-the-badge&logo=android)](https://expo.dev/artifacts/eas/s9TpXL6oU978vmoYpxN3Vq.apk)
+
 
 ## 🔐 Permissions Used
 
